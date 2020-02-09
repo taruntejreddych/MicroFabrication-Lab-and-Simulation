@@ -1,0 +1,16 @@
+smua.reset()
+smua.source.func = smua.OUTPUT_DCVOLTS
+smua.source.autorangev = smua.AUTORANGE_ON
+
+for v = 0,3,0.01 do
+smua.source.levelv = v
+smua.source.limiti = 10e-1
+smua.measure.rangei = 10e-1
+smua.sense = smua.SENSE_LOCAL
+smua.measure.autorangei = smua.AUTORANGE_ON
+smua.source.output = smua.OUTPUT_ON
+-- Print and place the current reading in the reading buffer.
+print(smua.measure.v()," ",smua.measure.i()," ",smua.measure.r())
+-- Turn off output.
+smua.source.output = smua.OUTPUT_OFF
+end
