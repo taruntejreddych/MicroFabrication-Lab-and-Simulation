@@ -1,0 +1,101 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+import xlrd 
+real_sh = xlrd.open_workbook("realpart.xlsx") 
+sheetreal = real_sh.sheet_by_index(0) 
+real_n2=[]
+for i in range(sheetreal.nrows):
+    real_n2.append(sheetreal.cell_value(i,1))
+
+imag_sh = xlrd.open_workbook("imaginarypart.xlsx") 
+sheetimg = imag_sh.sheet_by_index(0) 
+img_n2=[]
+for i in range(sheetimg.nrows):
+    img_n2.append(sheetimg.cell_value(i,1))
+
+wb = xlrd.open_workbook("s2_45deg.xlsx") 
+sheet = wb.sheet_by_index(0) 
+data=[]
+for i in range(sheet.nrows):
+    data.append(sheet.cell_value(i,2)/100)
+data=np.asarray(data)
+real_n2=np.asarray(real_n2)
+img_n2=np.asarray(img_n2)
+# print(data)
+# print(real_n2)
+# print(img_n2)
+
+def refl(i,l1):
+    k1=2*np.pi/(i+400)
+    i=int(i/10)
+    theta_r1=30        #incident angle  
+    theta_t1=math.asin((na/n1)*math.sin(theta_r1*np.pi/180))*180/np.pi
+    theta_r2=theta_t1
+    theta_t2=math.asin((n1/n2[i])*math.sin(theta_r2*np.pi/180))*180/np.pi
+    theta_r3=theta_t2
+    theta_t3=math.asin((n2[i]/nb)*math.sin(theta_r3*np.pi/180))*180/np.pi
+    
+    rho1=(n1*math.cos(theta_t1*np.pi/180)-na*math.cos(theta_r1*np.pi/180))/(n1*math.cos(theta_t1*np.pi/180)+na*math.cos(theta_r1*np.pi/180))
+    rho2=(n2[i]*math.cos(theta_t2*np.pi/180)-n1*math.cos(theta_r2*np.pi/180))/(n2[i]*math.cos(theta_t2*np.pi/180)+n1*math.cos(theta_r2*np.pi/180))
+    rho3=(nb*math.cos(theta_t3*np.pi/180)-n2[i]*math.cos(theta_r3*np.pi/180))/(nb*math.cos(theta_t3*np.pi/180)+n2[i]*math.cos(theta_r3*np.pi/180))
+    
+    gamma_3=rho3
+    gamma_2=(rho2+gamma_3*np.exp(2*k1*l2*n2[i]*1j))/(1+rho2*gamma_3*np.exp(2*k1*l2*n2[i]*1j))
+    gamma_1=(rho1+gamma_2*np.exp(2*k1*l1*n1*1j))/(1+rho1*gamma_2*np.exp(2*k1*l1*n1*1j))
+    return gamma_1
+
+na=1           #air                   
+n1=1.46        #thin film                    
+n2=(real_n2+img_n2*1j)         #substrate
+nb=1           #air
+l2=500000
+ms=100000
+index=0
+ms_forplot=[]
+for len_var in range(0,1200,17):
+    gamma_1=[]
+    l1=len_var
+    for r in range(0,701,10):
+        gamma_1.append(refl(r,l1))
+    gamma_1=np.asarray(gamma_1)
+
+    for i in range(len(gamma_1)):
+        gamma_1[i]=abs(gamma_1[i])**2     
+    ms_forplot.append(np.square(np.subtract(data,gamma_1)).mean())
+    if(np.square(np.subtract(data,gamma_1)).mean()<ms):
+        index=len_var
+        ms=np.square(np.subtract(data,gamma_1)).mean()
+           
+
+# x=[]
+# for i in range(0,1200,17):
+#     x.append(i)
+# x=np.asarray(x)   
+# plt.plot(x,ms_forplot,lw='3')
+# plt.xlabel('Thickness(nm)')
+# plt.ylabel('Mean Square Error')
+# plt.title('Measurement of Thickness')
+
+x=[]
+for i in range(1,72,1):
+    x.append(i)
+x=np.asarray(x) 
+print(x)
+for i in range(len(data)):
+    x[i]=2*np.pi*10.0/x[i]
+print(x)
+
+plt.plot(x,data,lw='3')
+plt.xlabel('Wavenumber(1e5 cm inverse)')
+plt.ylabel('Reflectance')
+plt.title('Measurement of Thickness')
+    
+    
+plt.show()
+# length=min(MSE)
+# print(index)
+
+
+
+
